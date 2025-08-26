@@ -2,7 +2,7 @@ import { InstagramAccount } from "@/entities/accounts/instagram";
 import { IInstagramAccountRepository } from "../../../repository/contracts/account/instagram";
 
 type ReadInstagramAccountServiceProps = {
-  id: string;
+  id?: string;
 };
 
 export class ReadInstagramAccountService {
@@ -10,7 +10,7 @@ export class ReadInstagramAccountService {
 
   async execute(
     props: ReadInstagramAccountServiceProps
-  ): Promise<InstagramAccount> {
+  ): Promise<InstagramAccount[]> {
     const { id } = props;
     const instagramAccount = this.repository.read(id);
 

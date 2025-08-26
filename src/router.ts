@@ -1,17 +1,21 @@
 import express from "express";
 import { createInstagramAccountController } from "./controllers/instagram/account/create";
-import { readInstagramAccountController } from "./controllers/instagram/account/read";
 import { updateInstagramAccountController } from "./controllers/instagram/account/update";
 import { deleteInstagramAccountController } from "./controllers/instagram/account/delete";
+import { readInstagramAccountController } from "./controllers/instagram/account/read";
+import { readAllInstagramAccountController } from "./controllers/instagram/account/read-all";
 
 const router = express.Router();
 
 router.post("/instagram/account/", (req, res) =>
   createInstagramAccountController.handler(req, res)
 );
-router.get("/instagram/account/", (req, res) =>
-  readInstagramAccountController.handler(req, res)
-);
+router.get("/instagram/account/:id", (req, res) => {
+  readInstagramAccountController.handler(req, res);
+});
+router.get("/instagram/accounts/", (req, res) => {
+  readAllInstagramAccountController.handler(req, res);
+});
 router.put("/instagram/account/", (req, res) =>
   updateInstagramAccountController.handler(req, res)
 );

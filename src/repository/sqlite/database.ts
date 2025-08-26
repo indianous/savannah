@@ -1,7 +1,11 @@
 import { faker } from "@faker-js/faker";
-import { env } from "../../utils/env";
+import { env } from "@/utils/env";
 import { DatabaseSync } from "node:sqlite";
 import SqlBricks from "sql-bricks";
+
+type InsertProps = { table: string; items: any[] };
+type UpdateProps = { table: string; items: any[]; id: string };
+type ReadProps = { colums: string[]; table: string };
 
 const database = new DatabaseSync(env.DATABASE_PATH);
 
@@ -14,29 +18,74 @@ const runSeed = (items: any[]) => {
       password TEXT NOT NULL
     ) STRICT
   `);
-  insert("instagram_account", items);
-};
+  sqliteDatabase.insert({ table: "instagram_account", items });
 
-const insert = async (table: string, items: any[]) => {
-  const { text: sql, values } = SqlBricks.insertInto(table, items).toParams({
-    placeholder: "?",
+  const data = sqliteDatabase.read({
+    colums: ["id"],
+    table: "instagram_account",
   });
-  const insertState = database.prepare(sql);
-  insertState.run(...values);
-
-  console.log(
-    `INSERT operation completed: inserted ${items.length} item(s) into ${table}`
-  );
+  data.forEach((i) => console.log("Id: ", i.id));
 };
 
-const select = async (
-  table: string,
-  columns: string[],
-  column: string,
-  value: any
-) => {
-  const {} = SqlBricks.select(columns).from(table).where(column, value);
-};
+class SqliteDatabase {
+  constructor() {}
+
+  insert(props: InsertProps) {
+    try {
+      const { items, table } = props;
+      const { text: sql, values } = SqlBricks.insertInto(table, items).toParams(
+        {
+          placeholder: "?",
+        }
+      );
+      const insertState = database.prepare(sql);
+      insertState.run(...values);
+
+      console.log(
+        `INSERT operation completed: inserted ${items.length} item(s) into ${table}`
+      );
+    } catch (error) {}
+  }
+
+  read(props: ReadProps, id?: string) {
+    try {
+      const { colums, table } = props;
+      if (id) {
+        const query = SqlBricks.select(colums.join(", "))
+          .where("id", id)
+          .from(table)
+          .toString();
+        const data = database.prepare(query).all();
+        console.log("SELECT operation completed:  ", data);
+        return data;
+      }
+
+      const query = SqlBricks.select(colums.join(", ")).from(table).toString();
+      const data = database.prepare(query).all();
+      console.log("SELECT operation completed:  ", data);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  update(props: UpdateProps) {
+    try {
+      const { id, items, table } = props;
+      const { text: sql, values } = SqlBricks.update(table, items).toParams({
+        placeholder: "?",
+      });
+      const updateState = database.prepare(sql);
+      updateState.run(...values);
+
+      console.log(
+        `UPDATE operation completed: updated ${items.length} item(s) into ${table}`
+      );
+    } catch (error) {}
+  }
+}
+
+const sqliteDatabase = new SqliteDatabase();
 
 runSeed(
   faker.helpers.multiple(
@@ -49,4 +98,4 @@ runSeed(
   )
 );
 
-export { insert };
+export { sqliteDatabase };

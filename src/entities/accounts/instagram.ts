@@ -1,7 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { Account } from "./contracts/account";
 
 type InstagramAccountProps = {
-  id: string;
   username: string;
   password: string;
 };
@@ -11,8 +11,8 @@ export class InstagramAccount implements Account {
   private username: string;
   private password: string;
 
-  constructor(props: InstagramAccountProps) {
-    this.id = props.id;
+  constructor(props: InstagramAccountProps, id?: string) {
+    this.id = id ? id : randomUUID();
     this.username = props.username;
     this.password = props.password;
   }
