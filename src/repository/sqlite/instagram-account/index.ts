@@ -1,8 +1,7 @@
 import { InstagramAccount } from "@/entities/accounts/instagram";
 import { IInstagramAccountRepository } from "@/repository/contracts/account/instagram";
 import { sqliteDatabase } from "@/repository/sqlite/database";
-import { table } from "console";
-import z, { json } from "zod";
+import z from "zod";
 
 class SqliteInstagramAccountRepository implements IInstagramAccountRepository {
   private database;
@@ -57,7 +56,6 @@ class SqliteInstagramAccountRepository implements IInstagramAccountRepository {
 
   async update(instagramAccount: InstagramAccount): Promise<void> {
     try {
-      console.log(instagramAccount.json());
       const { id, password, username } = instagramAccount.json();
       const item = { password, username };
       const table = "instagram_account";
@@ -68,7 +66,13 @@ class SqliteInstagramAccountRepository implements IInstagramAccountRepository {
   }
 
   async delete(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
+    try {
+      const item = { is_active: 0 };
+      const table = "instagram_account";
+      this.database.update({ id, item, table });
+    } catch (error) {
+      throw error;
+    }
   }
 }
 
