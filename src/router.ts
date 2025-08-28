@@ -16,7 +16,7 @@ router.get("/instagram/account/:id", (req, res) => {
 router.get("/instagram/accounts/", (req, res) => {
   readAllInstagramAccountController.handler(req, res);
 });
-router.put("/instagram/account/", (req, res) =>
+router.put("/instagram/account/:id", (req, res) =>
   updateInstagramAccountController.handler(req, res)
 );
 router.delete("/instagram/account/", (req, res) =>

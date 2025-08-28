@@ -4,12 +4,22 @@ import { DatabaseSync } from "node:sqlite";
 import SqlBricks from "sql-bricks";
 
 type InsertProps = { table: string; items: any[] };
-type UpdateProps = { table: string; items: any[]; id: string };
+type UpdateProps = { table: string; item: any; id: string };
 type ReadProps = { colums: string[]; table: string };
 
 const database = new DatabaseSync(env.DATABASE_PATH);
 
 const runSeed = (items: any[]) => {
+  const arr = [
+    {
+      id: "0d262eed-2611-441c-9e24-815626805a23",
+      username: "first",
+      password: "12345",
+    },
+  ];
+
+  arr.push(...items);
+
   database.exec(`DROP TABLE IF EXISTS instagram_account`);
 
   database.exec(`CREATE TABLE instagram_account (
@@ -18,7 +28,7 @@ const runSeed = (items: any[]) => {
       password TEXT NOT NULL
     ) STRICT
   `);
-  sqliteDatabase.insert({ table: "instagram_account", items });
+  sqliteDatabase.insert({ table: "instagram_account", items: arr });
 
   const data = sqliteDatabase.read({
     colums: ["id"],
@@ -71,17 +81,18 @@ class SqliteDatabase {
 
   update(props: UpdateProps) {
     try {
-      const { id, items, table } = props;
-      const { text: sql, values } = SqlBricks.update(table, items).toParams({
-        placeholder: "?",
-      });
-      const updateState = database.prepare(sql);
+      const { id, item, table } = props;
+      const { text, values } = SqlBricks.update(table, item)
+        .where({ id })
+        .toParams({ placeholder: "?" });
+
+      const updateState = database.prepare(text);
       updateState.run(...values);
 
-      console.log(
-        `UPDATE operation completed: updated ${items.length} item(s) into ${table}`
-      );
-    } catch (error) {}
+      console.log(`UPDATE operation completed: updated ${table} with ID ${id}`);
+    } catch (error) {
+      throw error;
+    }
   }
 }
 
