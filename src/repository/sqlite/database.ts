@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { env } from "@/utils/env";
 import { DatabaseSync } from "node:sqlite";
 import SqlBricks from "sql-bricks";
+import { NotFoundError } from "@/errors/not-found";
 
 type InsertProps = { table: string; items: any[] };
 type UpdateProps = { table: string; item: any; id: string };
@@ -15,6 +16,7 @@ const runSeed = (items: any[]) => {
       id: "0d262eed-2611-441c-9e24-815626805a23",
       username: "first",
       password: "12345",
+      is_active: 1,
     },
   ];
 
@@ -25,7 +27,8 @@ const runSeed = (items: any[]) => {
   database.exec(`CREATE TABLE instagram_account (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL,
-      password TEXT NOT NULL
+      password TEXT NOT NULL,
+      is_active INTEGER
     ) STRICT
   `);
   sqliteDatabase.insert({ table: "instagram_account", items: arr });
@@ -63,14 +66,19 @@ class SqliteDatabase {
       if (id) {
         const query = SqlBricks.select(colums.join(", "))
           .where("id", id)
+          .where("is_active", 1)
           .from(table)
           .toString();
         const data = database.prepare(query).all();
+        if (data.length === 0) throw new NotFoundError("Account not found!");
         console.log("SELECT operation completed:  ", data);
         return data;
       }
 
-      const query = SqlBricks.select(colums.join(", ")).from(table).toString();
+      const query = SqlBricks.select(colums.join(", "))
+        .where("is_active", 1)
+        .from(table)
+        .toString();
       const data = database.prepare(query).all();
       console.log("SELECT operation completed:  ", data);
       return data;
@@ -84,6 +92,7 @@ class SqliteDatabase {
       const { id, item, table } = props;
       const { text, values } = SqlBricks.update(table, item)
         .where({ id })
+        .where("is_active", 1)
         .toParams({ placeholder: "?" });
 
       const updateState = database.prepare(text);
@@ -104,6 +113,7 @@ runSeed(
       id: faker.string.uuid(),
       username: faker.internet.username(),
       password: faker.string.uuid(),
+      is_active: 1,
     }),
     { count: 3 }
   )
