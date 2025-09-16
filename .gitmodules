@@ -1,3 +1,0 @@
-[submodule "src/repository/sqlite"]
-	path = src/repository/sqlite
-	url = https://github.com/indianous/sqlite.git
